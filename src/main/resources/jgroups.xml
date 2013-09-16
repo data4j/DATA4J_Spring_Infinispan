@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- JGroups Definition -->
+<config xmlns="urn:org:jgroups"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:org:jgroups file:schema/JGroups-3.0.xsd">
+   
+   <!-- Specifying TCP in your protocol stack tells JGroups to use TCP to send messages between cluster members. -->
+   <TCP
+        bind_addr="${jgroups.tcp.address:localhost}"
+        bind_port="${jgroups.tcp.port:7800}"/>         
+
+   <!-- The concept behind TCPPING is that some selected cluster members assume the role of well-known hosts from which the initial membership information can be retrieved. -->
+   <TCPPING timeout="3000"
+            initial_hosts="localhost[7800], localhost[7801]"
+            port_range="5"
+            num_initial_members="3"
+            ergonomics="false"
+        />
+        
+   <!-- Protocol to discover subgroups -->
+   <MERGE2 max_interval="30000" min_interval="10000"/>
+ 
+   <!-- Failure detection protocol based on sockets -->
+   <FD_SOCK/>
+   
+   <!-- Failure detection based on simple heartbeat protocol. -->
+   <FD timeout="3000" max_tries="3"/>
+   
+   <!-- Catches SUSPECT events traveling up the stack. Verifies that the suspected member is really dead. -->
+   <VERIFY_SUSPECT timeout="1500"/>
+   
+   <!-- Lossless and FIFO delivery of multicast messages, using negative acks. -->
+   <pbcast.NAKACK
+         use_mcast_xmit="false"
+         retransmit_timeout="300,600,1200,2400,4800"
+         discard_delivered_msgs="false"/>
+   
+   <!-- Reliable unicast layer. Implemented with negative acks. The advantage of this protocol over UNICAST is that it doesn't send acks for every message. Instead, it sends 'acks' after receiving max_bytes and/ or periodically (stable_interval). -->
+   <UNICAST2 timeout="300,600,1200"
+             stable_interval="5000"
+             max_bytes="1m"/>
+             
+   <!-- Garbage collects messages that have been seen by all members of a cluster. Each member has to store all messages because it may be asked to retransmit. STABLE periodically gossips its highest and lowest messages seen. -->
+   <pbcast.STABLE stability_delay="500" desired_avg_gossip="5000" max_bytes="1m"/>
+   
+   <!-- Group Membership Service. Responsible for joining/leaving members. Also handles suspected members, and excludes them from the membership. Sends Views (topology configuration) to all members when a membership change has occurred. -->
+   <pbcast.GMS print_local_addr="false" join_timeout="3000" view_bundling="true"/>
+   
+   <!-- Simple flow control protocol based on a credit system. Each sender has a number of credits (bytes to send). -->
+   <UFC max_credits="200k" min_threshold="0.20"/>
+   
+   <!-- Simple flow control protocol based on a credit system. Each sender has a number of credits (bytes to send). -->
+   <MFC max_credits="200k" min_threshold="0.20"/>
+   
+   <!-- Fragmentation layer. Fragments messages larger than frag_size into smaller packets. Reassembles fragmented packets into bigger ones. -->
+   <FRAG2 frag_size="60000"/>
+   
+   <!-- Protocol which implements synchronous messages -->
+   <RSVP timeout="60000" resend_interval="500" ack_on_delivery="false" />
+
+</config>

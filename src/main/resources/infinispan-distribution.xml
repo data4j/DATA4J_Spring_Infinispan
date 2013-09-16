@@ -1,0 +1,37 @@
+<!-- Defines the configuration for Infinispan, for the cache manager configuration, for the default cache, and for named caches. -->
+<infinispan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			   xsi:schemaLocation="urn:infinispan:config:5.2 http://www.infinispan.org/schemas/infinispan-config-5.2.xsd"
+			   xmlns="urn:infinispan:config:5.2">
+   
+   <!-- Defines global settings shared among all cache instances created by a single CacheManager -->
+   <global>
+      <transport clusterName="DATA4J" transportClass="org.infinispan.remoting.transport.jgroups.JGroupsTransport">
+         <properties>
+            <property name="configurationFile" value="jgroups.xml"/>
+         </properties>
+      </transport>
+   </global>
+   
+   <!-- Specifies the default behavior for all named caches belonging to this cache manager. -->
+   <default>   
+	  <!-- Used to register JMX statistics in any available MBean server -->
+	  <jmxStatistics enabled="true"/>
+      <!-- Configure a synchronous distribution cache -->
+      <clustering mode="distribution">
+         <sync/>
+         <hash numOwners="2"/>
+      </clustering>
+   </default>
+   
+   <!-- Specify the configuration for a named cache. -->
+   <namedCache name="user-cache">
+   	   
+   	   <!-- Defines transactional (JTA) characteristics of the cache. -->
+	   <transaction	   		  
+		      transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+		      transactionMode="TRANSACTIONAL"
+		      lockingMode="PESSIMISTIC"/>
+		      	      
+   </namedCache>
+   
+</infinispan>
